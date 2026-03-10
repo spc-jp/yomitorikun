@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>よみとりくん - ぷっくりUI版</title>
+<script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* クレイモーフィズム用のカラーパレット */
+    --bg: #e6eef5; /* ベースとなる背景色（白のハイライトが映えるように少し暗め） */
+    --shadow-dark: #c1cddc; /* 右下の暗い影 */
+    --shadow-light: #ffffff; /* 左上の明るいハイライト */
+    
+    --primary: #5c8df6;
+    --primary-light: #8ab0ff;
+    --accent: #ff7e9e;
+    --text-main: #4a5a73;
+    --text-muted: #7a8ea8;
+    
+    --radius-s: 16px;
+    --radius-m: 24px;
+    --radius-l: 32px;
+
+    /* 凸：浮き出ている要素 */
+    --shadow-out: 
+      8px 8px 16px var(--shadow-dark), 
+      -8px -8px 16px var(--shadow-light),
+      inset 2px 2px 4px rgba(255,255,255,0.6);
+      
+    /* 凸：ホバー時など少し浮き上がる */
+    --shadow-out-hover: 
+      12px 12px 20px var(--shadow-dark), 
+      -12px -12px 20px var(--shadow-light),
+      inset 2px 2px 4px rgba(255,255,255,0.8);
+
+    /* 凹：へこんでいる要素（インナーシャドウ） */
+    --shadow-in: 
+      inset 6px 6px 12px var(--shadow-dark), 
+      inset -6px -6px 12px var(--shadow-light);
+      
+    /* ボタン用のカラー凸シャドウ */
+    --shadow-btn-primary:
+      6px 6px 14px rgba(92, 141, 246, 0.4),
+      -4px -4px 10px var(--shadow-light),
+      inset 2px 2px 6px rgba(255,255,255,0.4),
+      inset -4px -4px 6px rgba(0,0,0,0.1);
+
+    --shadow-btn-accent:
+      6px 6px 14px rgba(255, 126, 158, 0.4),
+      -4px -4px 10px var(--shadow-light),
+      inset 2px 2px 6px rgba(255,255,255,0.4),
+      inset -4px -4px 6px rgba(0,0,0,0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    /* フォントも丸っこく */
+    font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+    background-color: var(--bg);
+    min-height: 100vh;
+    color: var(--text-main);
+  }
+
+  /* ヘッダー */
+  header {
+    background: var(--bg);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 16px rgba(193, 205, 220, 0.5);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  /* 凹んだベースの中に立体的なアイコン */
+  .logo-box {
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    background: var(--bg);
+    box-shadow: var(--shadow-in);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo-icon {
+    font-size: 26px;
+    /* 絵文字に少し影をつけて立体的に */
+    filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));
+  }
+
+  .logo-text h1 {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--primary);
+    letter-spacing: 0.02em;
+    text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
+  }
+
+  .logo-text p {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  /* メインコンテナ */
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  /* クレイモーフィズム カード */
+  .card {
+    background: var(--bg);
+    border-radius: var(--radius-m);
+    padding: 28px;
+    box-shadow: var(--shadow-out);
+    /* クレイ感を出すためのうっすらとした白いボーダー */
+    border: 2px solid rgba(255, 255, 255, 0.4);
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--text-main);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-title::before {
+    content: '';
+    display: block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: inset 2px 2px 4px rgba(255,255,255,0.6);
+  }
+
+  /* 言語選択 */
+  .lang-group {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .lang-btn {
+    padding: 12px 24px;
+    border-radius: var(--radius-s);
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    box-shadow: var(--shadow-out);
+    transition: all 0.2s ease;
+  }
+
+  /* 選択時は凹ませて色を変える */
+  .lang-btn.active {
+    box-shadow: var(--shadow-in);
+    color: var(--primary);
+  }
+
+  .lang-btn:not(.active):hover {
+    box-shadow: var(--shadow-out-hover);
+    transform: translateY(-1px);
+    color: var(--primary-light);
+  }
+
+  /* アップロードエリア (凹ませて枠を作る) */
+  .upload-zone {
+    border-radius: var(--radius-m);
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--bg);
+    box-shadow: var(--shadow-in);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    /* ホバー時は少し凹みを深く、色を青みに */
+    box-shadow: inset 8px 8px 16px #c8d8ea, inset -8px -8px 16px #ffffff;
+    background: #e1ebf5;
+  }
+
+  .upload-zone .upload-icon {
+    font-size: 56px;
+    margin-bottom: 16px;
+    display: block;
+    filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.15));
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .upload-zone:hover .upload-icon {
+    transform: scale(1.1);
+  }
+
+  .upload-zone h3 {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--primary);
+    margin-bottom: 8px;
+    text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
+  }
+
+  .upload-zone p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    font-weight: 500;
+  }
+
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* カメラボタン */
+  .btn-camera {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px;
+    border-radius: var(--radius-s);
+    background: var(--bg);
+    color: var(--primary);
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    box-shadow: var(--shadow-out);
+    transition: all 0.2s ease;
+  }
+
+  .btn-camera:hover {
+    box-shadow: var(--shadow-out-hover);
+    transform: translateY(-2px);
+  }
+  .btn-camera:active {
+    box-shadow: var(--shadow-in);
+    transform: translateY(0);
+  }
+
+  /* プレビュー */
+  #preview-wrap {
+    display: none;
+    border-radius: var(--radius-m);
+    overflow: hidden;
+    background: var(--bg);
+    box-shadow: var(--shadow-in);
+    padding: 16px;
+    text-align: center;
+  }
+
+  #preview-img {
+    max-width: 100%;
+    max-height: 320px;
+    border-radius: 12px;
+    display: block;
+    margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  /* 進捗バー */
+  #progress-wrap {
+    display: none;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 12px;
+  }
+
+  /* バーのレール（凹み） */
+  .progress-bar-bg {
+    background: var(--bg);
+    border-radius: 50px;
+    height: 16px;
+    box-shadow: var(--shadow-in);
+    padding: 3px; /* 少し隙間をあける */
+  }
+
+  /* 伸びるバー（ぷっくり凸） */
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #8ab0ff, var(--primary));
+    border-radius: 50px;
+    width: 0%;
+    transition: width 0.3s ease;
+    box-shadow: inset 0px 2px 4px rgba(255,255,255,0.6), 0 2px 4px rgba(92,141,246,0.3);
+  }
+
+  .progress-status {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-top: 12px;
+    text-align: center;
+  }
+
+  /* 精度バッジ (ぷっくり) */
+  #confidence-badge {
+    display: none;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 900;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-out);
+    border: 1px solid rgba(255,255,255,0.5);
+  }
+
+  .conf-high { color: #10b981; }
+  .conf-mid { color: #f59e0b; }
+  .conf-low { color: #ef4444; }
+
+  /* テキストエリア（凹み） */
+  #result-text {
+    width: 100%;
+    min-height: 200px;
+    padding: 20px;
+    border-radius: var(--radius-s);
+    font-size: 15px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 500;
+    line-height: 1.8;
+    color: var(--text-main);
+    resize: vertical;
+    background: var(--bg);
+    border: none;
+    box-shadow: var(--shadow-in);
+  }
+
+  #result-text:focus {
+    outline: none;
+    /* フォーカス時は凹みを少し明るく */
+    box-shadow: inset 4px 4px 8px #d1dde8, inset -4px -4px 8px #ffffff;
+  }
+
+  /* アクションボタン群 */
+  .btn-group {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 24px;
+    border-radius: var(--radius-s);
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    background: var(--bg);
+    box-shadow: var(--shadow-out);
+    color: var(--text-main);
+    transition: all 0.2s ease;
+  }
+
+  .btn:active {
+    box-shadow: var(--shadow-in);
+    transform: translateY(2px);
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    box-shadow: var(--shadow-btn-primary);
+    flex: 1;
+  }
+  .btn-primary:active {
+    box-shadow: inset 4px 4px 8px rgba(0,0,0,0.2), inset -4px -4px 8px rgba(255,255,255,0.2);
+  }
+
+  /* 使い方（縦4行のリストに変更） */
+  .tips {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .tip-item {
+    background: var(--bg);
+    border-radius: var(--radius-s);
+    padding: 14px 20px;
+    box-shadow: var(--shadow-in);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .tip-item .tip-num {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--primary-light);
+    line-height: 1;
+    text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
+    flex-shrink: 0;
+  }
+
+  .tip-item p {
+    font-size: 13px;
+    color: var(--text-main);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  /* トースト通知 (ぷっくり浮く) */
+  #toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--primary);
+    color: white;
+    padding: 14px 28px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 700;
+    z-index: 9999;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+    opacity: 0;
+    white-space: nowrap;
+    box-shadow: var(--shadow-btn-primary);
+  }
+
+  #toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  /* 非常に目立つOCRボタン（キャンディやゼリーのような質感） */
+  #ocr-btn {
+    display: none;
+    width: 100%;
+    padding: 20px;
+    border-radius: var(--radius-l);
+    background: var(--accent);
+    color: white;
+    font-size: 18px;
+    font-weight: 900;
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-btn-accent);
+    transition: all 0.2s ease;
+    letter-spacing: 0.05em;
+  }
+
+  #ocr-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+  }
+
+  #ocr-btn:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: inset 4px 4px 10px rgba(0,0,0,0.2), inset -4px -4px 10px rgba(255,255,255,0.3);
+  }
+
+  #ocr-btn:disabled {
+    background: #b4c5d6;
+    color: #ffffff;
+    box-shadow: var(--shadow-in);
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* フッター */
+  footer {
+    text-align: center;
+    padding: 24px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
+  }
+
+  @media (max-width: 480px) {
+    .btn-group { flex-direction: column; }
+    .btn-primary { flex: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-box">
+    <div class="logo-icon">📷</div>
+  </div>
+  <div class="logo-text">
+    <h1>よみとりくん</h1>
+    <p>画像からテキストをかんたん抽出</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- 言語選択 -->
+  <div class="card">
+    <div class="card-title">読み取り言語を選んでください</div>
+    <div class="lang-group">
+      <button class="lang-btn active" data-lang="jpn">🇯🇵 日本語</button>
+      <button class="lang-btn" data-lang="eng">🇺🇸 英語</button>
+      <button class="lang-btn" data-lang="jpn+eng">🌐 日英混在</button>
+    </div>
+  </div>
+
+  <!-- 画像アップロード -->
+  <div class="card">
+    <div class="card-title">画像をアップロード</div>
+
+    <div class="upload-zone" id="drop-zone">
+      <span class="upload-icon">🖼️</span>
+      <h3>ここに画像をドロップ</h3>
+      <p>またはクリックしてファイルを選択<br>JPEG / PNG / WebP 対応</p>
+      <input type="file" id="file-input" accept="image/*">
+    </div>
+
+    <div style="margin: 16px 0; text-align:center; font-size:13px; font-weight:700; color:var(--text-muted);">
+      または
+    </div>
+
+    <button class="btn-camera" id="camera-btn">
+      📸 カメラで撮影する（スマホ向け）
+    </button>
+    <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none">
+  </div>
+
+  <!-- プレビュー -->
+  <div id="preview-wrap" class="card">
+    <div style="font-size:13px; font-weight:700; color:var(--text-muted); margin-bottom:12px;">選択した画像</div>
+    <img id="preview-img" alt="プレビュー">
+  </div>
+
+  <!-- OCRボタン (ぷっくりアクセント) -->
+  <button id="ocr-btn">✨ テキストを読み取る</button>
+
+  <!-- 進捗 -->
+  <div class="card" id="progress-wrap">
+    <div class="card-title">読み取り中...</div>
+    <div class="progress-label">
+      <span id="progress-status-text">初期化中</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+    <div class="progress-status" id="progress-detail"></div>
+  </div>
+
+  <!-- 結果 -->
+  <div class="card">
+    <div class="card-title">読み取り結果</div>
+
+    <div id="confidence-badge"></div>
+
+    <textarea id="result-text" placeholder="ここに読み取ったテキストが表示されます&#10;&#10;まず上で画像を選んで「テキストを読み取る」ボタンを押してください📝"></textarea>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" id="copy-btn">📋 コピー</button>
+      <button class="btn" id="download-btn">💾 保存</button>
+      <button class="btn" id="clear-btn" style="color: #ef4444;">🗑️ クリア</button>
+    </div>
+  </div>
+
+  <!-- 使い方ヒント -->
+  <div class="card">
+    <div class="card-title">精度を上げるコツ</div>
+    <div class="tips">
+      <div class="tip-item">
+        <div class="tip-num">01</div>
+        <p>明るい場所で撮影すると認識率がアップします</p>
+      </div>
+      <div class="tip-item">
+        <div class="tip-num">02</div>
+        <p>文字が水平になるよう画像を整えましょう</p>
+      </div>
+      <div class="tip-item">
+        <div class="tip-num">03</div>
+        <p>印刷物は特に高精度で読み取れます</p>
+      </div>
+      <div class="tip-item">
+        <div class="tip-num">04</div>
+        <p>日英混在の書類は「日英混在」モードを選んで</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  よみとりくん — Powered by Tesseract.js
+</footer>
+
+<div id="toast"></div>
+
+<script>
+  let selectedLang = 'jpn';
+  let selectedFile = null;
+
+  // 言語切り替え
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedLang = btn.dataset.lang;
+    });
+  });
+
+  // ドロップゾーン
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) loadImage(file);
+  });
+
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) loadImage(e.target.files[0]);
+  });
+
+  // カメラ
+  document.getElementById('camera-btn').addEventListener('click', () => {
+    document.getElementById('camera-input').click();
+  });
+  document.getElementById('camera-input').addEventListener('change', e => {
+    if (e.target.files[0]) loadImage(e.target.files[0]);
+  });
+
+  function loadImage(file) {
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = document.getElementById('preview-img');
+      img.src = e.target.result;
+      document.getElementById('preview-wrap').style.display = 'block';
+      document.getElementById('ocr-btn').style.display = 'block';
+      document.getElementById('confidence-badge').style.display = 'none';
+      document.getElementById('result-text').value = '';
+    };
+    reader.readAsDataURL(file);
+    showToast('画像を読み込みました！');
+  }
+
+  // OCR実行
+  document.getElementById('ocr-btn').addEventListener('click', async () => {
+    if (!selectedFile) {
+      showToast('まず画像を選んでください');
+      return;
+    }
+
+    const ocrBtn = document.getElementById('ocr-btn');
+    const progressWrap = document.getElementById('progress-wrap');
+    ocrBtn.disabled = true;
+    ocrBtn.textContent = '⏳ 読み取り中...';
+    progressWrap.style.display = 'block';
+    document.getElementById('confidence-badge').style.display = 'none';
+
+    // グレースケール前処理
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+
+    img.onload = async () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      // グレースケール変換
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114;
+        data[i] = data[i+1] = data[i+2] = gray;
+      }
+      ctx.putImageData(imageData, 0, 0);
+
+      const processedDataUrl = canvas.toDataURL('image/png');
+
+      try {
+        const result = await Tesseract.recognize(
+          processedDataUrl,
+          selectedLang,
+          {
+            logger: m => {
+              if (m.status === 'recognizing text') {
+                const pct = Math.round(m.progress * 100);
+                document.getElementById('progress-fill').style.width = pct + '%';
+                document.getElementById('progress-pct').textContent = pct + '%';
+                document.getElementById('progress-status-text').textContent = 'テキスト認識中';
+                document.getElementById('progress-detail').textContent = `処理中... ${pct}%`;
+              } else if (m.status === 'loading tesseract core') {
+                document.getElementById('progress-status-text').textContent = 'エンジン読み込み中';
+              } else if (m.status === 'loading language traineddata') {
+                document.getElementById('progress-status-text').textContent = '言語データ読み込み中';
+              }
+            }
+          }
+        );
+
+        const text = result.data.text.trim();
+        const confidence = Math.round(result.data.confidence);
+
+        document.getElementById('result-text').value = text || '（テキストが検出されませんでした）';
+
+        // 精度バッジ
+        const badge = document.getElementById('confidence-badge');
+        badge.style.display = 'inline-block';
+        if (confidence >= 80) {
+          badge.className = 'conf-high';
+          badge.textContent = `✅ 認識精度：${confidence}%（高）`;
+        } else if (confidence >= 50) {
+          badge.className = 'conf-mid';
+          badge.textContent = `⚠️ 認識精度：${confidence}%（中）`;
+        } else {
+          badge.className = 'conf-low';
+          badge.textContent = `❗ 認識精度：${confidence}%（低）`;
+        }
+
+        showToast('読み取り完了！');
+      } catch (err) {
+        document.getElementById('result-text').value = '読み取りに失敗しました。別の画像をお試しください。';
+        showToast('エラーが発生しました');
+      }
+
+      ocrBtn.disabled = false;
+      ocrBtn.textContent = '✨ テキストを読み取る';
+      progressWrap.style.display = 'none';
+    };
+
+    img.src = URL.createObjectURL(selectedFile);
+  });
+
+  // コピー
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    const textArea = document.getElementById('result-text');
+    const text = textArea.value;
+    if (!text) { showToast('コピーするテキストがありません'); return; }
+    
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => showToast('📋 コピーしました！')).catch(fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+
+    function fallbackCopy() {
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast('📋 コピーしました！');
+      } catch (err) {
+        showToast('コピーに失敗しました');
+      }
+      window.getSelection().removeAllRanges();
+    }
+  });
+
+  // ダウンロード
+  document.getElementById('download-btn').addEventListener('click', () => {
+    const text = document.getElementById('result-text').value;
+    if (!text) { showToast('保存するテキストがありません'); return; }
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'yomitorikun_' + new Date().toISOString().slice(0,10) + '.txt';
+    a.click();
+    showToast('💾 保存しました！');
+  });
+
+  // クリア
+  document.getElementById('clear-btn').addEventListener('click', () => {
+    document.getElementById('result-text').value = '';
+    document.getElementById('confidence-badge').style.display = 'none';
+    document.getElementById('preview-wrap').style.display = 'none';
+    document.getElementById('ocr-btn').style.display = 'none';
+    document.getElementById('preview-img').src = '';
+    document.getElementById('file-input').value = '';
+    document.getElementById('camera-input').value = '';
+    selectedFile = null;
+    showToast('🗑️ クリアしました');
+  });
+
+  // トースト
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+</script>
+
+</body>
+</html>
