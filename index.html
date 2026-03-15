@@ -9,9 +9,9 @@
 <style>
   :root {
     /* クレイモーフィズム用のカラーパレット */
-    --bg: #e6eef5; /* ベースとなる背景色（白のハイライトが映えるように少し暗め） */
-    --shadow-dark: #c1cddc; /* 右下の暗い影 */
-    --shadow-light: #ffffff; /* 左上の明るいハイライト */
+    --bg: #e6eef5; 
+    --shadow-dark: #c1cddc; 
+    --shadow-light: #ffffff; 
     
     --primary: #5c8df6;
     --primary-light: #8ab0ff;
@@ -57,7 +57,6 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    /* フォントも丸っこく */
     font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
     background-color: var(--bg);
     min-height: 100vh;
@@ -90,10 +89,9 @@
     flex-shrink: 0;
   }
 
-  .logo-icon {
-    font-size: 26px;
-    /* 絵文字に少し影をつけて立体的に */
-    filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));
+  .logo-icon svg {
+    filter: drop-shadow(2px 2px 3px rgba(92, 141, 246, 0.3));
+    color: var(--primary);
   }
 
   .logo-text h1 {
@@ -126,7 +124,6 @@
     border-radius: var(--radius-m);
     padding: 28px;
     box-shadow: var(--shadow-out);
-    /* クレイ感を出すためのうっすらとした白いボーダー */
     border: 2px solid rgba(255, 255, 255, 0.4);
   }
 
@@ -171,7 +168,6 @@
     transition: all 0.2s ease;
   }
 
-  /* 選択時は凹ませて色を変える */
   .lang-btn.active {
     box-shadow: var(--shadow-in);
     color: var(--primary);
@@ -183,7 +179,7 @@
     color: var(--primary-light);
   }
 
-  /* アップロードエリア (凹ませて枠を作る) */
+  /* アップロードエリア */
   .upload-zone {
     border-radius: var(--radius-m);
     padding: 40px 24px;
@@ -197,21 +193,20 @@
   }
 
   .upload-zone:hover, .upload-zone.drag-over {
-    /* ホバー時は少し凹みを深く、色を青みに */
     box-shadow: inset 8px 8px 16px #c8d8ea, inset -8px -8px 16px #ffffff;
     background: #e1ebf5;
   }
 
-  .upload-zone .upload-icon {
-    font-size: 56px;
+  .upload-icon svg {
     margin-bottom: 16px;
-    display: block;
-    filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.15));
+    color: var(--primary-light);
+    filter: drop-shadow(3px 5px 6px rgba(193, 205, 220, 0.8));
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
-  .upload-zone:hover .upload-icon {
-    transform: scale(1.1);
+  .upload-zone:hover .upload-icon svg {
+    transform: scale(1.1) translateY(-2px);
+    color: var(--primary);
   }
 
   .upload-zone h3 {
@@ -258,6 +253,10 @@
     transition: all 0.2s ease;
   }
 
+  .btn-camera svg {
+    filter: drop-shadow(1px 2px 2px rgba(193, 205, 220, 0.8));
+  }
+
   .btn-camera:hover {
     box-shadow: var(--shadow-out-hover);
     transform: translateY(-2px);
@@ -301,16 +300,14 @@
     margin-bottom: 12px;
   }
 
-  /* バーのレール（凹み） */
   .progress-bar-bg {
     background: var(--bg);
     border-radius: 50px;
     height: 16px;
     box-shadow: var(--shadow-in);
-    padding: 3px; /* 少し隙間をあける */
+    padding: 3px; 
   }
 
-  /* 伸びるバー（ぷっくり凸） */
   .progress-bar-fill {
     height: 100%;
     background: linear-gradient(90deg, #8ab0ff, var(--primary));
@@ -328,7 +325,7 @@
     text-align: center;
   }
 
-  /* 精度バッジ (ぷっくり) */
+  /* 精度バッジ */
   #confidence-badge {
     display: none;
     padding: 8px 16px;
@@ -344,7 +341,7 @@
   .conf-mid { color: #f59e0b; }
   .conf-low { color: #ef4444; }
 
-  /* テキストエリア（凹み） */
+  /* テキストエリア */
   #result-text {
     width: 100%;
     min-height: 200px;
@@ -359,12 +356,22 @@
     background: var(--bg);
     border: none;
     box-shadow: var(--shadow-in);
+    transition: all 0.3s ease;
   }
 
   #result-text:focus {
     outline: none;
-    /* フォーカス時は凹みを少し明るく */
     box-shadow: inset 4px 4px 8px #d1dde8, inset -4px -4px 8px #ffffff;
+  }
+
+  /* 結果表示時のポヨンッとしたアニメーション */
+  @keyframes pop-out {
+    0% { transform: scale(0.98); box-shadow: var(--shadow-in); background: var(--bg); }
+    50% { transform: scale(1.02); box-shadow: var(--shadow-out); background: #ffffff; }
+    100% { transform: scale(1); box-shadow: var(--shadow-in); background: var(--bg); }
+  }
+  .pop-animation {
+    animation: pop-out 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
   /* アクションボタン群 */
@@ -393,6 +400,10 @@
     transition: all 0.2s ease;
   }
 
+  .btn svg {
+    filter: drop-shadow(1px 2px 2px rgba(193, 205, 220, 0.6));
+  }
+
   .btn:active {
     box-shadow: var(--shadow-in);
     transform: translateY(2px);
@@ -404,11 +415,14 @@
     box-shadow: var(--shadow-btn-primary);
     flex: 1;
   }
+  .btn-primary svg {
+    filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.2));
+  }
   .btn-primary:active {
     box-shadow: inset 4px 4px 8px rgba(0,0,0,0.2), inset -4px -4px 8px rgba(255,255,255,0.2);
   }
 
-  /* 使い方（縦4行のリストに変更） */
+  /* 使い方（縦4行） */
   .tips {
     display: flex;
     flex-direction: column;
@@ -441,7 +455,7 @@
     line-height: 1.5;
   }
 
-  /* トースト通知 (ぷっくり浮く) */
+  /* トースト通知 */
   #toast {
     position: fixed;
     bottom: 32px;
@@ -465,7 +479,12 @@
     opacity: 1;
   }
 
-  /* 非常に目立つOCRボタン（キャンディやゼリーのような質感） */
+  /* 呼吸するOCRボタンアニメーション */
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); box-shadow: var(--shadow-btn-accent); }
+    50% { transform: scale(1.02); box-shadow: 0 10px 24px rgba(255, 126, 158, 0.6), -6px -6px 14px var(--shadow-light), inset 2px 2px 6px rgba(255,255,255,0.4), inset -4px -4px 6px rgba(0,0,0,0.1); }
+  }
+
   #ocr-btn {
     display: none;
     width: 100%;
@@ -481,19 +500,23 @@
     box-shadow: var(--shadow-btn-accent);
     transition: all 0.2s ease;
     letter-spacing: 0.05em;
+    animation: breathe 2.5s infinite ease-in-out;
   }
 
   #ocr-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
+    animation-play-state: paused;
+    transform: scale(1.03) translateY(-2px);
     filter: brightness(1.05);
   }
 
   #ocr-btn:active:not(:disabled) {
+    animation: none;
     transform: translateY(2px);
     box-shadow: inset 4px 4px 10px rgba(0,0,0,0.2), inset -4px -4px 10px rgba(255,255,255,0.3);
   }
 
   #ocr-btn:disabled {
+    animation: none;
     background: #b4c5d6;
     color: #ffffff;
     box-shadow: var(--shadow-in);
@@ -521,7 +544,13 @@
 
 <header>
   <div class="logo-box">
-    <div class="logo-icon">📷</div>
+    <div class="logo-icon">
+      <!-- カメラSVG -->
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+        <circle cx="12" cy="13" r="3"/>
+      </svg>
+    </div>
   </div>
   <div class="logo-text">
     <h1>よみとりくん</h1>
@@ -546,7 +575,14 @@
     <div class="card-title">画像をアップロード</div>
 
     <div class="upload-zone" id="drop-zone">
-      <span class="upload-icon">🖼️</span>
+      <div class="upload-icon">
+        <!-- ピクチャーSVG -->
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+      </div>
       <h3>ここに画像をドロップ</h3>
       <p>またはクリックしてファイルを選択<br>JPEG / PNG / WebP 対応</p>
       <input type="file" id="file-input" accept="image/*">
@@ -557,7 +593,12 @@
     </div>
 
     <button class="btn-camera" id="camera-btn">
-      📸 カメラで撮影する（スマホ向け）
+      <!-- 小さなカメラSVG -->
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      カメラで撮影する（スマホ向け）
     </button>
     <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none">
   </div>
@@ -568,7 +609,7 @@
     <img id="preview-img" alt="プレビュー">
   </div>
 
-  <!-- OCRボタン (ぷっくりアクセント) -->
+  <!-- OCRボタン -->
   <button id="ocr-btn">✨ テキストを読み取る</button>
 
   <!-- 進捗 -->
@@ -593,9 +634,33 @@
     <textarea id="result-text" placeholder="ここに読み取ったテキストが表示されます&#10;&#10;まず上で画像を選んで「テキストを読み取る」ボタンを押してください📝"></textarea>
 
     <div class="btn-group">
-      <button class="btn btn-primary" id="copy-btn">📋 コピー</button>
-      <button class="btn" id="download-btn">💾 保存</button>
-      <button class="btn" id="clear-btn" style="color: #ef4444;">🗑️ クリア</button>
+      <button class="btn btn-primary" id="copy-btn">
+        <!-- コピーSVG -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        コピー
+      </button>
+      <button class="btn" id="download-btn">
+        <!-- ダウンロードSVG -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        保存
+      </button>
+      <button class="btn" id="clear-btn" style="color: #ef4444;">
+        <!-- ゴミ箱SVG -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          <line x1="10" y1="11" x2="10" y2="17"/>
+          <line x1="14" y1="11" x2="14" y2="17"/>
+        </svg>
+        クリア
+      </button>
     </div>
   </div>
 
@@ -681,6 +746,7 @@
       document.getElementById('ocr-btn').style.display = 'block';
       document.getElementById('confidence-badge').style.display = 'none';
       document.getElementById('result-text').value = '';
+      document.getElementById('result-text').classList.remove('pop-animation');
     };
     reader.readAsDataURL(file);
     showToast('画像を読み込みました！');
@@ -699,6 +765,10 @@
     ocrBtn.textContent = '⏳ 読み取り中...';
     progressWrap.style.display = 'block';
     document.getElementById('confidence-badge').style.display = 'none';
+    
+    // リセット用
+    const resultArea = document.getElementById('result-text');
+    resultArea.classList.remove('pop-animation');
 
     // グレースケール前処理
     const canvas = document.createElement('canvas');
@@ -745,7 +815,10 @@
         const text = result.data.text.trim();
         const confidence = Math.round(result.data.confidence);
 
-        document.getElementById('result-text').value = text || '（テキストが検出されませんでした）';
+        // 結果をセットしてポヨンッとするアニメーションを実行
+        void resultArea.offsetWidth; // リフローを強制してアニメーションを再実行可能にする
+        resultArea.value = text || '（テキストが検出されませんでした）';
+        resultArea.classList.add('pop-animation');
 
         // 精度バッジ
         const badge = document.getElementById('confidence-badge');
@@ -763,7 +836,7 @@
 
         showToast('読み取り完了！');
       } catch (err) {
-        document.getElementById('result-text').value = '読み取りに失敗しました。別の画像をお試しください。';
+        resultArea.value = '読み取りに失敗しました。別の画像をお試しください。';
         showToast('エラーが発生しました');
       }
 
@@ -813,7 +886,9 @@
 
   // クリア
   document.getElementById('clear-btn').addEventListener('click', () => {
-    document.getElementById('result-text').value = '';
+    const resultArea = document.getElementById('result-text');
+    resultArea.value = '';
+    resultArea.classList.remove('pop-animation');
     document.getElementById('confidence-badge').style.display = 'none';
     document.getElementById('preview-wrap').style.display = 'none';
     document.getElementById('ocr-btn').style.display = 'none';
