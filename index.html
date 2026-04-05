@@ -30,8 +30,8 @@
     --primary: #5c8df6;
     --primary-light: #8ab0ff;
     --accent: #ff7e9e;
-    --text-main: #4a5a73;
-    --text-muted: #7a8ea8;
+    --text-main: #3a4a5e; /* コントラストを少し高めに調整 */
+    --text-muted: #647b96; /* 少し濃くして視認性を向上 */
     
     --radius-s: 16px;
     --radius-m: 24px;
@@ -146,13 +146,13 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* クレイモーフィズム カード */
+  /* クレイモーフィズム カード (ハイライト線を強調) */
   .card {
     background: var(--bg);
     border-radius: var(--radius-m);
     padding: 28px;
     box-shadow: var(--shadow-out);
-    border: 2px solid rgba(255, 255, 255, 0.4);
+    border: 1.5px solid rgba(255, 255, 255, 0.7); /* 境界線をくっきり */
   }
 
   .card-title {
@@ -191,7 +191,7 @@
     font-family: inherit;
     font-weight: 700;
     cursor: pointer;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.5);
     box-shadow: var(--shadow-out);
     transition: all 0.2s ease;
   }
@@ -199,6 +199,7 @@
   .lang-btn.active {
     box-shadow: var(--shadow-in);
     color: var(--primary);
+    border-color: transparent;
   }
 
   .lang-btn:not(.active):hover {
@@ -276,7 +277,7 @@
     font-weight: 700;
     font-family: inherit;
     cursor: pointer;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.5);
     box-shadow: var(--shadow-out);
     transition: all 0.2s ease;
   }
@@ -292,6 +293,7 @@
   .btn-camera:active {
     box-shadow: var(--shadow-in);
     transform: translateY(0);
+    border-color: transparent;
   }
 
   /* プレビュー */
@@ -328,15 +330,49 @@
     margin-bottom: 12px;
   }
 
+  /* プログレスバーの波打ちアニメーション */
   .progress-bar-bg {
     background: var(--bg);
     border-radius: 50px;
     height: 16px;
     box-shadow: var(--shadow-in);
     padding: 3px; 
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* 準備中にも動いているように見せるストライプ */
+  .progress-bar-bg::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.4),
+      rgba(255, 255, 255, 0.4) 10px,
+      transparent 10px,
+      transparent 20px
+    );
+    background-size: 28px 28px;
+    animation: moveStripe 1s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 50px;
+    z-index: 1;
+  }
+  
+  .progress-bar-bg.loading::before {
+    opacity: 1;
+  }
+
+  @keyframes moveStripe {
+    0% { background-position: 0 0; }
+    100% { background-position: 28px 0; }
   }
 
   .progress-bar-fill {
+    position: relative;
+    z-index: 2;
     height: 100%;
     background: linear-gradient(90deg, #8ab0ff, var(--primary));
     border-radius: 50px;
@@ -380,7 +416,7 @@
     font-weight: 400;
     line-height: 1.7;
     letter-spacing: 0.04em;
-    color: #2c3e50;
+    color: var(--text-main); /* 調整した色を適用 */
     resize: vertical;
     background: var(--bg);
     border: none;
@@ -421,7 +457,7 @@
     font-weight: 700;
     font-family: inherit;
     cursor: pointer;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.5);
     background: var(--bg);
     box-shadow: var(--shadow-out);
     color: var(--text-main);
@@ -435,12 +471,14 @@
   .btn:active {
     box-shadow: var(--shadow-in);
     transform: translateY(2px);
+    border-color: transparent;
   }
 
   .btn-primary {
     background: var(--primary);
     color: white;
     box-shadow: var(--shadow-btn-primary);
+    border-color: rgba(255, 255, 255, 0.2);
     flex: 1;
   }
   .btn-primary svg {
@@ -450,25 +488,34 @@
     box-shadow: inset 4px 4px 8px rgba(0,0,0,0.2), inset -4px -4px 8px rgba(255,255,255,0.2);
   }
 
+  /* コピー完了時のフィードバック用アニメーションクラス */
+  .btn.btn-copied {
+    background: #10b981; /* 成功の緑色 */
+    color: white;
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 
+      6px 6px 14px rgba(16, 185, 129, 0.4),
+      -4px -4px 10px var(--shadow-light),
+      inset 2px 2px 6px rgba(255,255,255,0.4),
+      inset -4px -4px 6px rgba(0,0,0,0.1);
+  }
+
   /* スマホでの操作性アップ（フローティングバーとレイアウト調整） */
   @media (max-width: 600px) {
-    /* 結果表示時はバーの分だけ余白を空ける */
     body.result-mode main {
       padding-bottom: 120px; 
     }
     
-    /* テキストエリアを画面いっぱいに広げる */
     body.result-mode #result-text {
       min-height: 60vh; 
     }
     
-    /* グラスモーフィズムなフローティングバー */
     body.result-mode #action-bar {
       position: fixed;
       bottom: 24px;
       left: 16px;
       right: 16px;
-      background: rgba(230, 238, 245, 0.75); /* すりガラス効果 */
+      background: rgba(230, 238, 245, 0.75); 
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.6);
@@ -482,7 +529,6 @@
       margin-top: 0; 
     }
     
-    /* ボタンをアプリのタブバーのように縦並びに */
     body.result-mode #action-bar .btn {
       flex: 1;
       flex-direction: column;
@@ -533,7 +579,7 @@
   /* トースト通知 */
   #toast {
     position: fixed;
-    top: 32px; /* スマホUIを考慮し、上に変更 */
+    top: 32px; 
     left: 50%;
     transform: translateX(-50%) translateY(-80px);
     background: var(--primary);
@@ -570,7 +616,7 @@
     font-size: 18px;
     font-weight: 900;
     font-family: inherit;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     cursor: pointer;
     box-shadow: var(--shadow-btn-accent);
     transition: all 0.2s ease;
@@ -588,6 +634,7 @@
     animation: none;
     transform: translateY(2px);
     box-shadow: inset 4px 4px 10px rgba(0,0,0,0.2), inset -4px -4px 10px rgba(255,255,255,0.3);
+    border-color: transparent;
   }
 
   #ocr-btn:disabled {
@@ -610,7 +657,6 @@
   }
 
   @media (max-width: 480px) {
-    /* 入力モード時のボタンだけ縦並びになるのを防ぐ */
     .btn-group:not(#action-bar) { flex-direction: column; }
     .btn-primary:not(#action-bar .btn-primary) { flex: none; }
   }
@@ -621,7 +667,6 @@
 <header>
   <div class="logo-box">
     <div class="logo-icon">
-      <!-- カメラSVG -->
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
         <circle cx="12" cy="13" r="3"/>
@@ -636,9 +681,8 @@
 
 <main>
 
-  <!-- === ①入力画面エリア（読み取り完了後に非表示になります） === -->
+  <!-- === ①入力画面エリア === -->
   <div id="view-input">
-    <!-- 言語選択 -->
     <div class="card">
       <div class="card-title">読み取り言語を選んでください</div>
       <div class="lang-group">
@@ -648,12 +692,10 @@
       </div>
     </div>
 
-    <!-- 画像アップロード -->
     <div class="card">
       <div class="card-title">画像をアップロード</div>
       <div class="upload-zone" id="drop-zone">
         <div class="upload-icon">
-          <!-- ピクチャーSVG -->
           <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
             <circle cx="8.5" cy="8.5" r="1.5"/>
@@ -670,7 +712,6 @@
       </div>
 
       <button class="btn-camera" id="camera-btn">
-        <!-- 小さなカメラSVG -->
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
           <circle cx="12" cy="13" r="4"/>
@@ -680,13 +721,11 @@
       <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none">
     </div>
 
-    <!-- プレビュー -->
     <div id="preview-wrap" class="card">
       <div style="font-size:13px; font-weight:700; color:var(--text-muted); margin-bottom:12px;">選択した画像</div>
       <img id="preview-img" alt="プレビュー">
     </div>
 
-    <!-- OCRボタン -->
     <button id="ocr-btn">✨ テキストを読み取る</button>
   </div>
 
@@ -697,29 +736,26 @@
       <span id="progress-status-text">初期化中</span>
       <span id="progress-pct">0%</span>
     </div>
-    <div class="progress-bar-bg">
+    <div class="progress-bar-bg" id="progress-bg">
       <div class="progress-bar-fill" id="progress-fill"></div>
     </div>
     <div class="progress-status" id="progress-detail"></div>
   </div>
 
-  <!-- === ③結果画面エリア（初期状態では非表示。読み取り完了で全画面表示になります） === -->
+  <!-- === ③結果画面エリア === -->
   <div id="view-result" style="display: none;">
     <div class="card" id="result-card">
       <div class="card-title">読み取り結果</div>
-
       <div id="confidence-badge"></div>
-
       <textarea id="result-text" readonly></textarea>
 
-      <!-- このボタングループが、スマホでは下部にフローティングします -->
       <div class="btn-group" id="action-bar">
         <button class="btn btn-primary" id="copy-btn">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon-normal">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
           </svg>
-          コピー
+          <span class="btn-text">コピー</span>
         </button>
         <button class="btn" id="download-btn">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -730,7 +766,6 @@
           保存
         </button>
         <button class="btn" id="clear-btn">
-          <!-- 戻る（やり直す）SVGアイコンに変更 -->
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"></line>
             <polyline points="12 19 5 12 12 5"></polyline>
@@ -741,7 +776,7 @@
     </div>
   </div>
 
-  <!-- === ④使い方ヒント（読み取り完了後に非表示になります） === -->
+  <!-- === ④使い方ヒント === -->
   <div id="view-tips">
     <div class="card">
       <div class="card-title">精度を上げるコツ</div>
@@ -778,6 +813,44 @@
   let selectedLang = 'jpn';
   let selectedFile = null;
 
+  // ==== 画面の切り替え管理 ====
+  function showInputView() {
+    document.getElementById('view-result').style.display = 'none';
+    document.body.classList.remove('result-mode');
+    document.getElementById('view-input').style.display = 'flex';
+    document.getElementById('view-tips').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // UIリセット
+    const resultArea = document.getElementById('result-text');
+    resultArea.value = '';
+    resultArea.classList.remove('pop-animation');
+    document.getElementById('confidence-badge').style.display = 'none';
+    document.getElementById('preview-wrap').style.display = 'none';
+    document.getElementById('ocr-btn').style.display = 'none';
+    document.getElementById('preview-img').src = '';
+    document.getElementById('file-input').value = '';
+    document.getElementById('camera-input').value = '';
+    selectedFile = null;
+  }
+
+  function showResultView() {
+    document.getElementById('view-input').style.display = 'none';
+    document.getElementById('view-tips').style.display = 'none';
+    document.getElementById('view-result').style.display = 'block';
+    document.body.classList.add('result-mode');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ==== ブラウザの戻る・進むボタン対応 (History API) ====
+  window.addEventListener('popstate', (e) => {
+    if (e.state && e.state.page === 'result') {
+      showResultView();
+    } else {
+      showInputView();
+    }
+  });
+
   // 言語切り替え
   document.querySelectorAll('.lang-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -807,7 +880,6 @@
     if (e.target.files[0]) loadImage(e.target.files[0]);
   });
 
-  // カメラ
   document.getElementById('camera-btn').addEventListener('click', () => {
     document.getElementById('camera-input').click();
   });
@@ -824,7 +896,6 @@
       document.getElementById('preview-wrap').style.display = 'block';
       document.getElementById('ocr-btn').style.display = 'block';
       
-      // 結果画面用のリセット
       document.getElementById('confidence-badge').style.display = 'none';
       document.getElementById('result-text').value = '';
       document.getElementById('result-text').classList.remove('pop-animation');
@@ -842,16 +913,17 @@
 
     const ocrBtn = document.getElementById('ocr-btn');
     const progressWrap = document.getElementById('progress-wrap');
+    const progressBg = document.getElementById('progress-bg');
+    
     ocrBtn.disabled = true;
     ocrBtn.textContent = '⏳ 読み取り中...';
     progressWrap.style.display = 'block';
+    progressBg.classList.add('loading'); // ローディングアニメーション開始
     document.getElementById('confidence-badge').style.display = 'none';
     
-    // リセット用
     const resultArea = document.getElementById('result-text');
     resultArea.classList.remove('pop-animation');
 
-    // グレースケール前処理
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
@@ -884,9 +956,11 @@
                 document.getElementById('progress-status-text').textContent = 'テキスト認識中';
                 document.getElementById('progress-detail').textContent = `処理中... ${pct}%`;
               } else if (m.status === 'loading tesseract core') {
-                document.getElementById('progress-status-text').textContent = 'エンジン読み込み中';
+                document.getElementById('progress-status-text').textContent = '準備中(1/2)';
+                document.getElementById('progress-detail').textContent = 'AIエンジンを読み込んでいます...';
               } else if (m.status === 'loading language traineddata') {
-                document.getElementById('progress-status-text').textContent = '言語データ読み込み中';
+                document.getElementById('progress-status-text').textContent = '準備中(2/2)';
+                document.getElementById('progress-detail').textContent = '言語データを読み込んでいます...';
               }
             }
           }
@@ -895,24 +969,14 @@
         const text = result.data.text.trim();
         const confidence = Math.round(result.data.confidence);
 
-        // ==== ここから「結果へのフォーカス」の画面切り替え ====
-        document.getElementById('view-input').style.display = 'none';
-        document.getElementById('view-tips').style.display = 'none';
-        document.getElementById('view-result').style.display = 'block';
-        
-        // スマホ用フローティングバーなどのスタイルを適用するためのクラス
-        document.body.classList.add('result-mode');
-        
-        // 画面の一番上にスクロール
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        // ====================================================
+        // ==== URLの履歴に追加し、結果画面へ切り替え ====
+        history.pushState({ page: 'result' }, '', '#result');
+        showResultView();
 
-        // 結果をセットしてポヨンッとするアニメーションを実行
         void resultArea.offsetWidth; 
         resultArea.value = text || '（テキストが検出されませんでした）';
         resultArea.classList.add('pop-animation');
 
-        // 精度バッジ
         const badge = document.getElementById('confidence-badge');
         badge.style.display = 'inline-block';
         if (confidence >= 80) {
@@ -932,22 +996,25 @@
         showToast('エラーが発生しました');
       }
 
+      progressBg.classList.remove('loading'); // アニメーション終了
       ocrBtn.disabled = false;
       ocrBtn.textContent = '✨ テキストを読み取る';
       progressWrap.style.display = 'none';
+      document.getElementById('progress-fill').style.width = '0%';
+      document.getElementById('progress-pct').textContent = '0%';
     };
 
     img.src = URL.createObjectURL(selectedFile);
   });
 
-  // コピー
+  // コピー（マイクロインタラクション追加）
   document.getElementById('copy-btn').addEventListener('click', () => {
     const textArea = document.getElementById('result-text');
     const text = textArea.value;
     if (!text) { showToast('コピーするテキストがありません'); return; }
     
     if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).then(() => showToast('📋 コピーしました！')).catch(fallbackCopy);
+      navigator.clipboard.writeText(text).then(onCopySuccess).catch(fallbackCopy);
     } else {
       fallbackCopy();
     }
@@ -956,11 +1023,37 @@
       textArea.select();
       try {
         document.execCommand('copy');
-        showToast('📋 コピーしました！');
+        onCopySuccess();
       } catch (err) {
         showToast('コピーに失敗しました');
       }
       window.getSelection().removeAllRanges();
+    }
+    
+    function onCopySuccess() {
+      showToast('📋 コピーしました！');
+      
+      // コピーボタンのアニメーション
+      const btn = document.getElementById('copy-btn');
+      btn.classList.add('btn-copied');
+      btn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span class="btn-text">コピー完了</span>
+      `;
+      
+      // 2秒後に元の状態に戻す
+      setTimeout(() => {
+        btn.classList.remove('btn-copied');
+        btn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          <span class="btn-text">コピー</span>
+        `;
+      }, 2000);
     }
   });
 
@@ -976,30 +1069,14 @@
     showToast('💾 保存しました！');
   });
 
-  // クリア（やり直す）
+  // やり直す（履歴がある場合はブラウザバックを使う）
   document.getElementById('clear-btn').addEventListener('click', () => {
-    const resultArea = document.getElementById('result-text');
-    resultArea.value = '';
-    resultArea.classList.remove('pop-animation');
-    
-    // UIのリセット
-    document.getElementById('confidence-badge').style.display = 'none';
-    document.getElementById('preview-wrap').style.display = 'none';
-    document.getElementById('ocr-btn').style.display = 'none';
-    document.getElementById('preview-img').src = '';
-    document.getElementById('file-input').value = '';
-    document.getElementById('camera-input').value = '';
-    selectedFile = null;
-
-    // ==== 画面を入力モードに戻す ====
-    document.getElementById('view-result').style.display = 'none';
-    document.body.classList.remove('result-mode');
-    
-    document.getElementById('view-input').style.display = 'flex';
-    document.getElementById('view-tips').style.display = 'block';
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    // =================================
+    if (location.hash === '#result') {
+      history.back(); // 履歴を戻す（popstateが発火して入力画面に戻る）
+    } else {
+      showInputView(); // 直接戻す
+    }
+    showToast('🗑️ やり直します');
   });
 
   // トースト
